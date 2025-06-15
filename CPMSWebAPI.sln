@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CPMSWebAPI", "CPMSWebAPI.csproj", "{45C8DE56-C164-4BB0-A7B1-240BB2C7A2DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CPMSWebAPI", "CPMSWebAPI\CPMSWebAPI.csproj", "{45C8DE56-C164-4BB0-A7B1-240BB2C7A2DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
