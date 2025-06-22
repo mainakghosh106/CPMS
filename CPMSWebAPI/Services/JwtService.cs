@@ -14,34 +14,36 @@ namespace CPMSWebAPI.Services
             _configuration= configuration;
         }
 
-        public string GenerateAccessToken(string username, int userId)
+        public string GenerateAccessToken(string username, int userId, string Role)
         {
             var claims = new[]
             {
             new Claim(ClaimTypes.Name, username),
             new Claim("UserId", userId.ToString()),
+            new Claim(ClaimTypes.Role,Role),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-            return GenerateToken(claims, true);
+            return GenerateToken(claims, true, Role);
         }
 
-        public string GenerateRefreshToken(string username, int userId)
+        public string GenerateRefreshToken(string username, int userId, string Role)
         {
             var claims = new[]
             {
             new Claim(ClaimTypes.Name, username),
             new Claim("UserId", userId.ToString()),
+            new Claim(ClaimTypes.Role,Role),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-            return GenerateToken(claims, false);
+            return GenerateToken(claims, false, Role);
         }
 
-        private string GenerateToken(Claim[] claims, bool isAccessToken)
+        private string GenerateToken(Claim[] claims, bool isAccessToken, string Role)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                isAccessToken ? _configuration["JwtSettings:AccessSecret"] : _configuration["JwtSettings:RefreshSecret"]
+                isAccessToken ? _configuration["Jwt:SecretKey"] : _configuration["Jwt:SecretKey_Refresh"]
             ));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

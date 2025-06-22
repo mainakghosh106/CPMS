@@ -8,9 +8,10 @@ namespace CPMSWebAPI.Data
         public AppDbContext(DbContextOptions<AppDbContext> options):base(options) { }
         
         public DbSet<Users> users { get; set; }
-        //public DbSet<UserRole> userRole { get; set; }
+        
         public DbSet<Roles> Role { get; set; }
         public DbSet<UserHierarchy> userHierarchies { get; set; }
+        public DbSet<UserHierarchyHistory>userHierarchyHistory { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

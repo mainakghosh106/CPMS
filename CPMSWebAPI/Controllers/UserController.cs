@@ -1,4 +1,5 @@
 ﻿using CPMSWebAPI.Data;
+using CPMSWebAPI.DTO;
 using CPMSWebAPI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -94,7 +95,7 @@ namespace CPMSWebAPI.Controllers
 
         public async Task<IActionResult> UpdateUserDetails([FromBody] Users users)
         {
-            if(users.Id==0)
+            if (users.Id == 0)
             {
                 return NotFound();
             }
@@ -117,5 +118,83 @@ namespace CPMSWebAPI.Controllers
             await _appdbcontext.SaveChangesAsync();
             return Ok(users);
         }
+
+        [HttpPost("AssignHierarchy")]
+        public async Task<IActionResult> AssignHierarchy([FromBody] UserHierarchyDto userHierarchyDTO)
+        {
+            if (userHierarchyDTO == null)
+            {
+                return BadRequest("User data is required.");
+            }
+
+            if (userHierarchyDTO.SupervisorId == userHierarchyDTO.SubordinateId)
+            {
+                return BadRequest("Supervisor and Subordinate cannot be the same user.");
+            }
+
+            var supervisor = await _appdbcontext.users.FindAsync(userHierarchyDTO.SupervisorId);
+            var subordinate = await _appdbcontext.users.FindAsync(userHierarchyDTO.SubordinateId);
+
+            if (supervisor == null || subordinate == null)
+            {
+                return NotFound("User details not found");
+            }
+
+            bool exists = await _appdbcontext.userHierarchies.AnyAsync(x => x.SupervisorId == userHierarchyDTO.SupervisorId && x.SubordinateId == userHierarchyDTO.SubordinateId);
+            if (exists)
+            {
+                return Conflict("This supervisor-subordinate relationship already exists.");
+            }
+
+            var relation = new UserHierarchy
+            {
+                SupervisorId = userHierarchyDTO.SupervisorId,
+                SubordinateId = userHierarchyDTO.SubordinateId
+            };
+
+            _appdbcontext.userHierarchies.Add(relation);
+            await _appdbcontext.SaveChangesAsync();
+
+            return Ok("User hierarchy assigned successfully.");
+        }
+
+        public async Task<IActionResult> DeleteHierarchy([FromBody] UserHierarchyDto dto)
+        {
+            if (dto == null)
+            {
+                return BadRequest("Details are not provided");
+            }
+            using var transaction = await _appdbcontext.Database.BeginTransactionAsync();
+            try
+            {
+                //Insert into history
+                var relation = new UserHierarchyHistory
+                {
+                    SupervisorId = dto.SupervisorId,
+                    SubordinateId = dto.SubordinateId,
+                    DeletedOn = DateTime.Now
+                };
+
+                _appdbcontext.userHierarchyHistory.Add(relation);
+                await _appdbcontext.SaveChangesAsync();
+
+                //delete the hierarchy
+
+                var rowsAffected = await _appdbcontext.userHierarchies.Where(x => x.Id == dto.Id).ExecuteDeleteAsync();
+
+                if (rowsAffected == 0)
+                    return NotFound("No matching hierarchy found.");
+
+                await transaction.CommitAsync();
+
+                return Ok("Hierarchy deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
     }
 }

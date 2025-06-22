@@ -1,4 +1,6 @@
-﻿namespace CPMSWebAPI.Models
+﻿using System.Text.Json.Serialization;
+
+namespace CPMSWebAPI.Models
 {
     public class UserHierarchy
     {

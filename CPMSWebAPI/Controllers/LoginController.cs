@@ -1,8 +1,12 @@
-﻿using CPMSWebAPI.Models;
+﻿using CPMSWebAPI.Data;
+using CPMSWebAPI.DTO;
+using CPMSWebAPI.Models;
 using CPMSWebAPI.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CPMSWebAPI.Controllers
 {
@@ -12,23 +16,43 @@ namespace CPMSWebAPI.Controllers
     {
         private readonly JwtService _jwt;
         private readonly IConfiguration _config;
+        private readonly AppDbContext _appdbcontext;
 
 
-        public LoginController(JwtService jwt, IConfiguration config)
+        public LoginController(JwtService jwt, IConfiguration config, AppDbContext appDbContext)
         {
             _jwt = jwt;
             _config = config;
+            _appdbcontext = appDbContext;
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequests login)
+        public async Task<IActionResult> Login([FromBody] LoginRequests login)
         {
-            // Hardcoded demo user for now
-            if (login.Username != "admin" || login.Password != "password")
-                return Unauthorized();
+            if (login == null || string.IsNullOrEmpty(login.Password))
+                return BadRequest("Invalid credentials.");
 
-            var accessToken = _jwt.GenerateAccessToken(login.Username, 1);
-            var refreshToken = _jwt.GenerateRefreshToken(login.Username, 1);
+            var existingUser = await _appdbcontext.users.FirstOrDefaultAsync(u => u.UserName == login.Username);
+
+            if (existingUser == null)
+            {
+                return Unauthorized("Invalid username");
+            }
+
+            var passwordHasher = new PasswordHasher<Users>();
+            var result = passwordHasher.VerifyHashedPassword(existingUser, existingUser.PasswordHash, login.Password);
+
+            if (result == PasswordVerificationResult.Failed)
+                return Unauthorized("Invalid password.");
+
+
+            var userWithRole = await _appdbcontext.users.Include(u => u.Role).Where(u => u.UserName == login.Username) 
+            .Select(ur=>ur.Role.RoleName).FirstOrDefaultAsync();
+
+           
+
+            var accessToken = _jwt.GenerateAccessToken(login.Username, 1,userWithRole);
+            var refreshToken = _jwt.GenerateRefreshToken(login.Username, 1, userWithRole);
 
             return Ok(new AuthResponse
             {
@@ -52,8 +76,8 @@ namespace CPMSWebAPI.Controllers
             if (usernameFromAccess != usernameFromRefresh)
                 return Unauthorized("Mismatched user");
 
-            var newAccessToken = _jwt.GenerateAccessToken(usernameFromRefresh, 1);
-            var newRefreshToken = _jwt.GenerateRefreshToken(usernameFromRefresh, 1);
+            var newAccessToken = _jwt.GenerateAccessToken(usernameFromRefresh, 1,"");
+            var newRefreshToken = _jwt.GenerateRefreshToken(usernameFromRefresh, 1,"");
 
             return Ok(new AuthResponse
             {

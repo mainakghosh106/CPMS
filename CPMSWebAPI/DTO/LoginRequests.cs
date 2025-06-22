@@ -1,4 +1,4 @@
-﻿namespace CPMSWebAPI.Models
+﻿namespace CPMSWebAPI.DTO
 {
     public class LoginRequests
     {
