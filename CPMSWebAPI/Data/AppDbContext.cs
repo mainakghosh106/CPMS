@@ -10,7 +10,7 @@ namespace CPMSWebAPI.Data
         public DbSet<Users> users { get; set; }
         
         public DbSet<Roles> Role { get; set; }
-        public DbSet<UserHierarchy> userHierarchies { get; set; }
+        public DbSet<UserHierarchy> UserHierarchy { get; set; }
         public DbSet<UserHierarchyHistory>userHierarchyHistory { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
