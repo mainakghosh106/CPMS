@@ -45,14 +45,14 @@ namespace CPMSWebAPI.Controllers
             if (result == PasswordVerificationResult.Failed)
                 return Unauthorized("Invalid password.");
 
-
+            var userid= await _appdbcontext.users.Where(u => u.UserName == login.Username).Select(u => u.Id).FirstOrDefaultAsync();
             var userWithRole = await _appdbcontext.users.Include(u => u.Role).Where(u => u.UserName == login.Username) 
             .Select(ur=>ur.Role.RoleName).FirstOrDefaultAsync();
 
            
 
-            var accessToken = _jwt.GenerateAccessToken(login.Username, 1,userWithRole);
-            var refreshToken = _jwt.GenerateRefreshToken(login.Username, 1, userWithRole);
+            var accessToken = _jwt.GenerateAccessToken(login.Username, Convert.ToInt32(userid), userWithRole);
+            var refreshToken = _jwt.GenerateRefreshToken(login.Username, Convert.ToInt32(userid), userWithRole);
 
             return Ok(new AuthResponse
             {

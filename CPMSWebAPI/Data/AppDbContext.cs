@@ -3,15 +3,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CPMSWebAPI.Data
 {
-    public class AppDbContext:DbContext
+    public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options):base(options) { }
-        
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
         public DbSet<Users> users { get; set; }
-        
         public DbSet<Roles> Role { get; set; }
         public DbSet<UserHierarchy> UserHierarchy { get; set; }
-        public DbSet<UserHierarchyHistory>userHierarchyHistory { get; set; }
+        public DbSet<UserHierarchyHistory> userHierarchyHistory { get; set; }
+        public DbSet<Projects> Project { get; set; }
+        public DbSet<ProjectUser> ProjectUserMapping { get; set; }
+        public DbSet<ProjectProgressLog> ProjectProgressLog { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,10 +30,25 @@ namespace CPMSWebAPI.Data
                 .OnDelete(DeleteBehavior.NoAction); // Prevents cascade path
 
             modelBuilder.Entity<Roles>().HasData(
-                new Roles() {Id=1,RoleName="Admin"},
+                new Roles() { Id = 1, RoleName = "Admin" },
                 new Roles() { Id = 2, RoleName = "Manager" },
                 new Roles() { Id = 3, RoleName = "TeamLead" }
             );
+
+            modelBuilder.Entity<ProjectUser>()
+                .HasOne(pu => pu.Project)
+                .WithMany()
+                .HasForeignKey(pu => pu.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);  // OK
+
+            modelBuilder.Entity<ProjectUser>()
+                .HasOne(pu => pu.User)
+                .WithMany()
+                .HasForeignKey(pu => pu.UserId)
+                .OnDelete(DeleteBehavior.NoAction);  // Prevent conflict
+
+           
+
         }
     }
 }
