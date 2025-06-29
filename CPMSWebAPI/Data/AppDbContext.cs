@@ -1,4 +1,5 @@
-﻿using CPMSWebAPI.Models;
+﻿using CPMSWebAPI.DTO;
+using CPMSWebAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CPMSWebAPI.Data
@@ -14,6 +15,10 @@ namespace CPMSWebAPI.Data
         public DbSet<Projects> Project { get; set; }
         public DbSet<ProjectUser> ProjectUserMapping { get; set; }
         public DbSet<ProjectProgressLog> ProjectProgressLog { get; set; }
+        public DbSet<DashboardSummaryDto> DashboardSummaryDto { get; set; }
+
+        public DbSet<Tasks> Tasks { get; set; }
+        public DbSet<TimeLog> TimeLog { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

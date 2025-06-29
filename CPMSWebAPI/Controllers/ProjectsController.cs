@@ -103,7 +103,7 @@ namespace CPMSWebAPI.Controllers
 
         }
 
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Admin,Manager,Employee")]
         [HttpPut("UpdateProjectStatus")]
         public async Task<IActionResult> UpdateProjectStatus(projectsDTO dto)
         {
